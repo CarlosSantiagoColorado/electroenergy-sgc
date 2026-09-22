@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ELECTROENERGY — Solicitud de Cotización</title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<nav>
+    <div class="logo">ELECTRO<span>ENERGY</span></div>
+</nav>
+
+<div class="hero">
+    <h1>Solicita tu Cotización Solar</h1>
+    <p>Completa el formulario y recibe una propuesta en menos de 48 horas.</p>
+</div>
+
+<div class="container">
+
+    <!-- FORMULARIO -->
+    <div class="card" id="seccion-formulario">
+        <h2>Nueva Solicitud</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" id="nombre" placeholder="Ej: Carlos Mejía"/>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Cliente *</label>
+                <select id="tipoCliente">
+                    <option value="">Seleccionar...</option>
+                    <option value="Residencial">Residencial</option>
+                    <option value="Empresarial">Empresarial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico *</label>
+                <input type="email" id="correo" placeholder="correo@ejemplo.com"/>
+            </div>
+            <div class="form-group">
+                <label>Teléfono *</label>
+                <input type="tel" id="telefono" placeholder="3XX XXX XXXX"/>
+            </div>
+            <div class="form-group full">
+                <label>Dirección del Predio *</label>
+                <input type="text" id="direccion" placeholder="Calle, número, barrio, ciudad"/>
+            </div>
+            <div class="form-group">
+                <label>Consumo Mensual (kWh) *</label>
+                <input type="number" id="consumoKwh" placeholder="Ej: 420"/>
+            </div>
+            <div class="form-group">
+                <label>Valor Promedio Factura (COP) *</label>
+                <input type="number" id="valorFactura" placeholder="Ej: 210000"/>
+            </div>
+            <div class="form-group full">
+                <label>Observaciones</label>
+                <textarea id="observaciones" placeholder="Información adicional..."></textarea>
+            </div>
+        </div>
+        <div id="error-msg" class="error-msg"></div>
+        <div class="form-actions">
+            <button onclick="limpiarFormulario()" class="btn-secondary">Limpiar</button>
+            <button onclick="registrarSolicitud()" class="btn-primary">Enviar Solicitud</button>
+        </div>
+    </div>
+
+    <!-- CONFIRMACIÓN -->
+    <div class="card" id="seccion-confirmacion" style="display:none">
+        <div class="confirmacion">
+            <div class="check">✅</div>
+            <h2>¡Solicitud Registrada!</h2>
+            <p>Tu código de seguimiento es:</p>
+            <div class="codigo" id="codigoGenerado"></div>
+            <p class="sub">Recibirás una cotización en menos de 48 horas.</p>
+            <button onclick="nuevaSolicitud()" class="btn-primary">Nueva Solicitud</button>
+        </div>
+    </div>
+
+    <!-- CONSULTA -->
+    <div class="card">
+        <h2>Consultar Estado</h2>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>Código de Seguimiento</label>
+                <div class="search-row">
+                    <input type="text" id="codigoBusqueda" placeholder="Ej: EE-2026-00001"/>
+                    <button onclick="consultarEstado()" class="btn-primary">Consultar</button>
+                </div>
+            </div>
+        </div>
+        <div id="resultado-consulta"></div>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Solicitudes Registradas</h2>
+            <button onclick="cargarSolicitudes()" class="btn-secondary">🔄 Actualizar</button>
+        </div>
+        <div id="tabla-solicitudes"></div>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
