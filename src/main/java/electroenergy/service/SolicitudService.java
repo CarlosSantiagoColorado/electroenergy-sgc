@@ -22,6 +22,8 @@ public class SolicitudService {
         solicitud.setCodigoSeguimiento(codigo);
         solicitud.setEstado("Pendiente de revision");
         solicitud.setFechaRegistro(LocalDateTime.now());
+        solicitud.setConsentimientoDatos(true);
+        solicitud.setFechaConsentimiento(LocalDateTime.now());
         return solicitudRepository.save(solicitud);
     }
 
@@ -37,5 +39,13 @@ public class SolicitudService {
         String año = String.valueOf(LocalDateTime.now().getYear());
         long count = solicitudRepository.count() + 1;
         return String.format("EE-%s-%05d", año, count);
+    }
+
+    public Optional<Solicitud> buscarPorId(Long id) {
+        return solicitudRepository.findById(id);
+    }
+
+    public Solicitud guardar(Solicitud solicitud) {
+        return solicitudRepository.save(solicitud);
     }
 }

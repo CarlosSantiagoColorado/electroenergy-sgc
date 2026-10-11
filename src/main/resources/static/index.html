@@ -63,6 +63,70 @@
         <div id="error-msg" class="error-msg"></div>
         <div class="form-actions">
             <button onclick="limpiarFormulario()" class="btn-secondary">Limpiar</button>
+            <!-- AVISO DE PRIVACIDAD Y CONSENTIMIENTO -->
+            <div class="privacidad-box">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="consentimiento"/>
+                    <span>
+            He leído y acepto la
+            <a href="#" onclick="mostrarPolitica(event)">
+                Política de Tratamiento de Datos Personales
+            </a>
+            de ELECTROENERGY. Autorizo el tratamiento de mis datos
+            conforme a la
+            <strong>Ley 1581 de 2012</strong> y el
+            Decreto 1377 de 2013.
+        </span>
+                </label>
+            </div>
+
+            <!-- MODAL POLÍTICA DE PRIVACIDAD -->
+            <div id="modal-privacidad" class="modal-overlay" style="display:none">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Política de Tratamiento de Datos Personales</h3>
+                        <button onclick="cerrarModal()" class="modal-close">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>RESPONSABLE DEL TRATAMIENTO:</strong><br/>
+                            ELECTROENERGY S.A.S. — NIT: [NIT de la empresa]<br/>
+                            Dirección: [Dirección de la empresa]<br/>
+                            Correo: datos@electroenergy.co</p>
+
+                        <p><strong>FINALIDAD DEL TRATAMIENTO:</strong><br/>
+                            Los datos personales recopilados (nombre, correo, teléfono, dirección
+                            y consumo energético) serán utilizados exclusivamente para:</p>
+                        <ul>
+                            <li>Generar y enviar cotizaciones de sistemas de energía solar.</li>
+                            <li>Contactar al titular para gestionar su solicitud.</li>
+                            <li>Mejorar nuestros servicios mediante análisis estadístico anónimo.</li>
+                        </ul>
+
+                        <p><strong>DERECHOS DEL TITULAR (Art. 8, Ley 1581/2012):</strong><br/>
+                            Como titular de sus datos personales usted tiene derecho a:</p>
+                        <ul>
+                            <li><strong>Conocer</strong> los datos que tenemos sobre usted.</li>
+                            <li><strong>Actualizar y rectificar</strong> sus datos.</li>
+                            <li><strong>Solicitar prueba</strong> de la autorización otorgada.</li>
+                            <li><strong>Revocar</strong> la autorización y solicitar la supresión de sus datos.</li>
+                            <li><strong>Presentar quejas</strong> ante la Superintendencia de Industria y Comercio.</li>
+                        </ul>
+
+                        <p><strong>PARA EJERCER SUS DERECHOS:</strong><br/>
+                            Envíe su solicitud a: <strong>datos@electroenergy.co</strong><br/>
+                            Tiempo de respuesta: máximo 10 días hábiles.</p>
+
+                        <p><strong>VIGENCIA:</strong><br/>
+                            Sus datos serán conservados durante el tiempo necesario para cumplir
+                            la finalidad del tratamiento y las obligaciones legales aplicables.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="aceptarPolitica()" class="btn-primary">
+                            Acepto la Política de Privacidad
+                        </button>
+                    </div>
+                </div>
+            </div>
             <button onclick="registrarSolicitud()" class="btn-primary">Enviar Solicitud</button>
         </div>
     </div>

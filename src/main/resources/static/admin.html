@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELECTROENERGY — Panel Administrativo</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">ELECTROENERGY</span>
+        </div>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" onclick="mostrarSeccion('dashboard')">
+            <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" onclick="mostrarSeccion('solicitudes')">
+            <span class="nav-icon">📋</span><span class="nav-label">Solicitudes</span>
+        </a>
+        <a href="#" class="nav-item" onclick="mostrarSeccion('cotizaciones')">
+            <span class="nav-icon">📄</span><span class="nav-label">Cotizaciones</span>
+        </a>
+        <a href="#" class="nav-item" onclick="mostrarSeccion('usuarios')">
+            <span class="nav-icon">👥</span><span class="nav-label">Usuarios</span>
+        </a>
+        <a href="#" class="nav-item" onclick="mostrarSeccion('parametros')">
+            <span class="nav-icon">⚙️</span><span class="nav-label">Parámetros</span>
+        </a>
+        <a href="/" class="nav-item nav-back">
+            <span class="nav-icon">🏠</span><span class="nav-label">Portal Cliente</span>
+        </a>
+    </nav>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="main-content" id="mainContent">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
+        <div class="topbar-info">
+            <span class="badge-admin">Administrador</span>
+            <span class="topbar-date" id="topbarDate"></span>
+        </div>
+    </div>
+
+    <!-- ======================== DASHBOARD ======================== -->
+    <section id="seccion-dashboard" class="seccion activa">
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-azul">
+                <div class="kpi-icon">📋</div>
+                <div class="kpi-datos">
+                    <div class="kpi-valor" id="kpiTotal">—</div>
+                    <div class="kpi-label">Total Solicitudes</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-amarillo">
+                <div class="kpi-icon">⏳</div>
+                <div class="kpi-datos">
+                    <div class="kpi-valor" id="kpiPendientes">—</div>
+                    <div class="kpi-label">Pendientes</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-verde">
+                <div class="kpi-icon">✅</div>
+                <div class="kpi-datos">
+                    <div class="kpi-valor" id="kpiAprobadas">—</div>
+                    <div class="kpi-label">Aprobadas</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-morado">
+                <div class="kpi-icon">👥</div>
+                <div class="kpi-datos">
+                    <div class="kpi-valor" id="kpiUsuarios">—</div>
+                    <div class="kpi-label">Usuarios Activos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Últimas Solicitudes</h3>
+                    <button class="btn-link" onclick="mostrarSeccion('solicitudes')">Ver todas →</button>
+                </div>
+                <table class="tabla-mini" id="tablaUltimas">
+                    <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbodyUltimas">
+                    <tr><td colspan="4" class="cargando">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Distribución por Estado</h3>
+                </div>
+                <div class="estados-chart" id="estadosChart"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== SOLICITUDES ======================== -->
+    <section id="seccion-solicitudes" class="seccion">
+        <div class="seccion-toolbar">
+            <div class="filtros">
+                <select id="filtroEstado" onchange="filtrarSolicitudes()">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En revisión">En revisión</option>
+                    <option value="Aprobada">Aprobada</option>
+                    <option value="Rechazada">Rechazada</option>
+                    <option value="Cotización enviada">Cotización enviada</option>
+                </select>
+                <input type="text" id="buscarSolicitud" placeholder="🔍 Buscar por código o cliente..."
+                       oninput="filtrarSolicitudes()">
+            </div>
+            <button class="btn-primario" onclick="cargarSolicitudes()">↻ Actualizar</button>
+        </div>
+
+        <div class="card">
+            <table class="tabla-admin" id="tablaSolicitudes">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Tipo</th>
+                    <th>Consumo (kWh)</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="tbodySolicitudes">
+                <tr><td colspan="9" class="cargando">Cargando solicitudes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <!-- ======================== COTIZACIONES ======================== -->
+    <section id="seccion-cotizaciones" class="seccion">
+        <div class="seccion-toolbar">
+            <h2>Cotizaciones Generadas</h2>
+            <button class="btn-primario" onclick="cargarCotizaciones()">↻ Actualizar</button>
+        </div>
+        <div class="card">
+            <table class="tabla-admin" id="tablaCotizaciones">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Paneles</th>
+                    <th>Potencia</th>
+                    <th>Total COP</th>
+                    <th>Ahorro/mes</th>
+                    <th>Retorno</th>
+                    <th>CO₂ evitado</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                </tr>
+                </thead>
+                <tbody id="tbodyCotizaciones">
+                <tr><td colspan="10" class="cargando">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================== USUARIOS ======================== -->
+    <section id="seccion-usuarios" class="seccion">
+        <div class="seccion-toolbar">
+            <h2>Gestión de Usuarios</h2>
+            <button class="btn-primario" onclick="abrirModalUsuario()">+ Nuevo Usuario</button>
+        </div>
+        <div class="card">
+            <table class="tabla-admin" id="tablaUsuarios">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="tbodyUsuarios">
+                <tr><td colspan="6" class="cargando">Cargando usuarios...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================== PARÁMETROS ======================== -->
+    <section id="seccion-parametros" class="seccion">
+        <div class="parametros-grid">
+            <div class="card">
+                <div class="card-header"><h3>⚡ Parámetros Técnicos</h3></div>
+                <div class="param-form">
+                    <div class="param-fila">
+                        <label>Precio Panel Solar (USD)</label>
+                        <input type="number" id="paramPrecioPanel" value="250" min="1">
+                    </div>
+                    <div class="param-fila">
+                        <label>Precio por kWh (COP)</label>
+                        <input type="number" id="paramPrecioKwh" value="650" min="1">
+                    </div>
+                    <div class="param-fila">
+                        <label>Horas Pico Solar (HPS) promedio</label>
+                        <input type="number" id="paramHPS" value="4.5" step="0.1" min="1">
+                    </div>
+                    <div class="param-fila">
+                        <label>Eficiencia del sistema (%)</label>
+                        <input type="number" id="paramEficiencia" value="80" min="1" max="100">
+                    </div>
+                    <div class="param-fila">
+                        <label>Potencia panel estándar (W)</label>
+                        <input type="number" id="paramPotenciaPanel" value="400" min="1">
+                    </div>
+                    <button class="btn-primario" onclick="guardarParametros()">💾 Guardar Parámetros</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>📋 Resumen de Configuración</h3></div>
+                <div id="resumenParametros" class="resumen-params"></div>
+            </div>
+        </div>
+    </section>
+
+</div><!-- fin main-content -->
+
+<!-- MODAL CAMBIAR ESTADO SOLICITUD -->
+<div id="modalEstado" class="modal-overlay" style="display:none">
+    <div class="modal">
+        <h3>Cambiar Estado de Solicitud</h3>
+        <p id="modalSolicitudInfo"></p>
+        <div class="form-grupo">
+            <label>Nuevo Estado</label>
+            <select id="selectNuevoEstado">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En revisión">En revisión</option>
+                <option value="Aprobada">Aprobada</option>
+                <option value="Rechazada">Rechazada</option>
+                <option value="Cotización enviada">Cotización enviada</option>
+            </select>
+        </div>
+        <div class="modal-botones">
+            <button class="btn-secundario" onclick="cerrarModal('modalEstado')">Cancelar</button>
+            <button class="btn-primario" onclick="confirmarCambioEstado()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUEVO / EDITAR USUARIO -->
+<div id="modalUsuario" class="modal-overlay" style="display:none">
+    <div class="modal">
+        <h3 id="modalUsuarioTitulo">Nuevo Usuario</h3>
+        <input type="hidden" id="usuarioId">
+        <div class="form-grupo">
+            <label>Nombre completo *</label>
+            <input type="text" id="usuarioNombre" placeholder="Ej: María García">
+        </div>
+        <div class="form-grupo">
+            <label>Correo electrónico *</label>
+            <input type="email" id="usuarioCorreo" placeholder="correo@electroenergy.co">
+        </div>
+        <div class="form-grupo">
+            <label>Rol *</label>
+            <select id="usuarioRol">
+                <option value="Administrador">Administrador</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Asesor Comercial">Asesor Comercial</option>
+                <option value="Secretaria">Secretaria</option>
+            </select>
+        </div>
+        <div class="modal-botones">
+            <button class="btn-secundario" onclick="cerrarModal('modalUsuario')">Cancelar</button>
+            <button class="btn-primario" onclick="guardarUsuario()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICACIÓN -->
+<div id="toast" class="toast"></div>
+
+<script src="admin.js"></script>
+</body>
+</html>

@@ -45,4 +45,10 @@ public class Solicitud {
 
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro = LocalDateTime.now();
+
+    @Column(name = "consentimiento_datos", nullable = false)
+    private Boolean consentimientoDatos = false;
+
+    @Column(name = "fecha_consentimiento")
+    private LocalDateTime fechaConsentimiento;
 }

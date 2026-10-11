@@ -39,4 +39,17 @@ public class SolicitudController {
         }
         return ResponseEntity.notFound().build();
     }
+    // PUT - Cambiar estado de una solicitud
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        Optional<Solicitud> opt = solicitudService.buscarPorId(id);
+        if (opt.isPresent()) {
+            Solicitud s = opt.get();
+            s.setEstado(body.get("estado"));
+            return ResponseEntity.ok(solicitudService.guardar(s));
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
