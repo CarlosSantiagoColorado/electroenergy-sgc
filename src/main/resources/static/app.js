@@ -60,42 +60,46 @@ async function registrarSolicitud() {
     }
 }
 
-// ── Consultar estado ─────────────────────────────────────────────────────────
 async function consultarEstado() {
     const codigo = document.getElementById('codigoBusqueda').value.trim();
     const div    = document.getElementById('resultado-consulta');
 
     if (!codigo) {
-        div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">Ingresa un código de seguimiento.</p>';
+        div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">Ingresa un código de seguimiento o correo.</p>';
         return;
     }
 
     try {
-        const response = await fetch(`${API}/${codigo}`);
+        const response = await fetch(`/api/solicitudes/consultar?q=${encodeURIComponent(codigo)}`);
 
         if (response.ok) {
-            const s = await response.json();
+            const d = await response.json();
+            const fmt = n => Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
             div.innerHTML = `
                 <div class="resultado-card">
-                    <h3>📋 Solicitud ${s.codigoSeguimiento}</h3>
-                    <div class="resultado-row"><label>Cliente</label><span>${s.nombre}</span></div>
-                    <div class="resultado-row"><label>Tipo</label><span>${s.tipoCliente}</span></div>
-                    <div class="resultado-row"><label>Correo</label><span>${s.correo}</span></div>
-                    <div class="resultado-row"><label>Teléfono</label><span>${s.telefono}</span></div>
-                    <div class="resultado-row"><label>Dirección</label><span>${s.direccion}</span></div>
-                    <div class="resultado-row"><label>Consumo (kWh)</label><span>${s.consumoKwh}</span></div>
-                    <div class="resultado-row"><label>Valor Factura</label><span>$ ${Number(s.valorFactura).toLocaleString('es-CO')}</span></div>
-                    <div class="resultado-row"><label>Estado</label><span class="estado-badge">${s.estado}</span></div>
-                    <div class="resultado-row"><label>Fecha Registro</label><span>${formatFecha(s.fechaRegistro)}</span></div>
+                    <h3>📋 Solicitud ${d.codigoSeguimiento}</h3>
+                    <div class="resultado-row"><label>Cliente</label><span>${d.nombre}</span></div>
+                    <div class="resultado-row"><label>Correo</label><span>${d.correo}</span></div>
+                    <div class="resultado-row"><label>Consumo (kWh)</label><span>${d.consumoKwh}</span></div>
+                    <div class="resultado-row"><label>Estado</label><span class="estado-badge">${d.estado}</span></div>
+                    <div class="resultado-row"><label>Fecha Registro</label><span>${formatFecha(d.fechaRegistro)}</span></div>
+                    ${d.cotizacion ? `
+                    <hr style="margin:16px 0;border-color:#e0e0e0">
+                    <h4 style="color:#1a3c1a;margin-bottom:12px">📄 Cotización ${d.cotizacion.codigoCotizacion}</h4>
+                    <div class="resultado-row"><label>Paneles</label><span>${d.cotizacion.numPaneles} × ${d.cotizacion.potenciaPanelW}W</span></div>
+                    <div class="resultado-row"><label>Total inversión</label><span>$${fmt(d.cotizacion.costoTotal)}</span></div>
+                    <div class="resultado-row"><label>Ahorro/mes</label><span>$${fmt(d.cotizacion.ahorroMensualEstimado)}</span></div>
+                    <div class="resultado-row"><label>Tiempo de retorno</label><span>${d.cotizacion.tiempoRetornoMeses} meses</span></div>
+                    <div class="resultado-row"><label>CO₂ evitado</label><span>${fmt(d.cotizacion.reduccionCo2KgAnual)} kg/año</span></div>
+                    ` : `<div style="margin-top:12px;color:#777;font-size:0.9rem">⏳ Tu cotización está siendo preparada.</div>`}
                 </div>`;
-        } else {
-            div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se encontró ninguna solicitud con ese código.</p>';
-        }
-    } catch (error) {
-        div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se pudo conectar con el servidor.</p>';
-    }
+                } else {
+                    div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se encontró ninguna solicitud con ese código.</p>';
+                }
+            } catch (error) {
+                div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se pudo conectar con el servidor.</p>';
+            }
 }
-
 // ── Cargar todas las solicitudes ─────────────────────────────────────────────
 async function cargarSolicitudes() {
     const div = document.getElementById('tabla-solicitudes');

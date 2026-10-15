@@ -140,6 +140,8 @@ function renderTablaSolicitudes(lista) {
                         onclick="generarCotizacion(${s.id}, '${s.codigoSeguimiento}')">📄</button>
                     <button class="btn-accion" title="Cambiar estado"
                         onclick="abrirModalEstado(${s.id}, '${s.codigoSeguimiento}', '${s.estado}')">🔄</button>
+                    <button class="btn-accion" title="Datos faltantes"
+                        onclick="abrirModalObservacion(${s.id}, '${s.codigoSeguimiento}', '${s.nombre}')">💬</button>
                 </div>
             </td>
         </tr>`).join('');
@@ -413,40 +415,58 @@ function mostrarDetalleCotizacion(c) {
         `• CO₂ evitado: ${fmt(c.reduccionCo2KgAnual)} kg/año`
     );
 }
- async function cargarCotizaciones() {
-        const tbody = document.getElementById('tbodyCotizaciones');
-        tbody.innerHTML = '<tr><td colspan="10" class="cargando">Cargando...</td></tr>';
-        try {
-            const resp = await fetch('/api/cotizaciones');
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            const lista = await resp.json();
-            const fmt = n => Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+async function cargarCotizaciones() {
+    const tbody = document.getElementById('tbodyCotizaciones');
+    tbody.innerHTML = '<tr><td colspan="11" class="cargando">Cargando...</td></tr>';
+    try {
+        const resp = await fetch('/api/cotizaciones');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const lista = await resp.json();
+        const fmt = n => Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
 
-            if (!lista || lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="cargando">No hay cotizaciones aún. Genera una desde Solicitudes usando el botón 📄</td></tr>';
-                return;
-            }
-            tbody.innerHTML = lista.map(c => {
-                const clienteNombre = c.solicitud ? c.solicitud.nombre : '—';
-                return `
-                <tr>
-                    <td><code>${c.codigoCotizacion || '—'}</code></td>
-                    <td>${clienteNombre}</td>
-                    <td>${c.numPaneles} × ${c.potenciaPanelW}W</td>
-                    <td>${c.potenciaSistemaKw} kW</td>
-                    <td>$${fmt(c.costoTotal)}</td>
-                    <td>$${fmt(c.ahorroMensualEstimado)}/mes</td>
-                    <td>${c.tiempoRetornoMeses} meses</td>
-                    <td>${fmt(c.reduccionCo2KgAnual)} kg</td>
-                    <td>${badgeEstado(c.estado)}</td>
-                    <td>${formatFecha(c.fechaGeneracion)}</td>
-                </tr>`;
-            }).join('');
-        } catch (e) {
-            console.error('Error cotizaciones:', e);
-            tbody.innerHTML = `<tr><td colspan="10" class="cargando" style="color:#c62828">Error: ${e.message} — verifica que el backend esté corriendo</td></tr>`;
+        if (!lista || lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="cargando">No hay cotizaciones aún. Genera una desde Solicitudes usando el botón 📄</td></tr>';
+            return;
         }
- }
+        tbody.innerHTML = lista.map(c => {
+            const clienteNombre = c.solicitud ? c.solicitud.nombre : '—';
+            return `
+            <tr>
+                <td><code>${c.codigoCotizacion || '—'}</code></td>
+                <td>${clienteNombre}</td>
+                <td>${c.numPaneles} × ${c.potenciaPanelW}W</td>
+                <td>${c.potenciaSistemaKw} kW</td>
+                <td>$${fmt(c.costoTotal)}</td>
+                <td>$${fmt(c.ahorroMensualEstimado)}/mes</td>
+                <td>${c.tiempoRetornoMeses} meses</td>
+                <td>${fmt(c.reduccionCo2KgAnual)} kg</td>
+                <td>${badgeEstado(c.estado)}</td>
+                <td>${formatFecha(c.fechaGeneracion)}</td>
+                <td>
+                    ${c.estado !== 'Enviada'
+                        ? `<button class="btn-accion btn-enviar"
+                               data-id="${c.id}"
+                               data-codigo="${c.codigoCotizacion}"
+                               title="Enviar al cliente">📧</button>`
+                        : '<span style="color:#2e7d32;font-size:0.8rem">✅ Enviada</span>'
+                    }
+                </td>
+            </tr>`;
+        }).join('');
+
+        setTimeout(() => {
+            tbody.querySelectorAll('.btn-enviar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    enviarCotizacion(btn.dataset.id, btn.dataset.codigo);
+                });
+            });
+        }, 0);
+
+    } catch (e) {
+        console.error('Error cotizaciones:', e);
+        tbody.innerHTML = `<tr><td colspan="11" class="cargando" style="color:#c62828">Error: ${e.message}</td></tr>`;
+    }
+}
  // ===== F-03: VALIDACIÓN TÉCNICA =====
  async function validarSolicitud(solicitudId, codigo) {
      if (!confirm(`¿Validar técnicamente la solicitud ${codigo}?`)) return;
@@ -481,5 +501,125 @@ function mostrarDetalleCotizacion(c) {
          cargarSolicitudes();
      } catch (e) {
          mostrarToast('Error en validación: ' + e.message, true);
+     }
+
+ }
+ // ===== F-04: GESTIÓN DE DATOS FALTANTES =====
+ let solicitudObsId = null;
+
+ async function abrirModalObservacion(solicitudId, codigo, nombre) {
+     solicitudObsId = solicitudId;
+     document.getElementById('modalObsInfo').textContent =
+         `Solicitud: ${codigo} — ${nombre}`;
+     document.getElementById('obsDescripcion').value = '';
+     document.getElementById('modalObservacion').style.display = 'flex';
+     await cargarObservaciones(solicitudId);
+ }
+
+ async function cargarObservaciones(solicitudId) {
+     try {
+         const resp = await fetch(`/api/observaciones/solicitud/${solicitudId}`);
+         const lista = await resp.json();
+         const contenedor = document.getElementById('listaObservaciones');
+
+         if (!lista.length) {
+             contenedor.innerHTML = '<p style="color:#999;font-size:0.85rem;text-align:center">Sin observaciones registradas aún</p>';
+             return;
+         }
+
+         const colores = {
+             'Pendiente':  '#fff3cd',
+             'Respondida': '#d1e7dd',
+             'Cerrada':    '#f0f4f0'
+         };
+
+         contenedor.innerHTML = lista.map(o => `
+             <div style="background:${colores[o.estadoObservacion] || '#f9f9f9'};
+                         border-radius:8px;padding:12px;margin-bottom:8px;font-size:0.85rem">
+                 <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                     <strong>${o.tipo.replace('_',' ')}</strong>
+                     <span style="color:#666">${o.estadoObservacion}</span>
+                 </div>
+                 ${o.campoAfectado ? `<div style="color:#666;margin-bottom:4px">Campo: ${o.campoAfectado}</div>` : ''}
+                 <div style="margin-bottom:6px">${o.descripcion}</div>
+                 ${o.respuestaCliente
+                     ? `<div style="border-top:1px solid rgba(0,0,0,0.1);padding-top:6px;color:#2e7d32">
+                         💬 Respuesta: ${o.respuestaCliente}</div>`
+                     : o.estadoObservacion === 'Pendiente'
+                         ? `<div style="margin-top:6px;display:flex;gap:6px">
+                             <input type="text" id="resp_${o.id}" placeholder="Respuesta del cliente..."
+                                 style="flex:1;padding:5px 8px;border:1px solid #c8dfc8;border-radius:6px;font-size:0.82rem">
+                             <button class="btn-primario" style="padding:5px 10px;font-size:0.8rem"
+                                 onclick="responderObservacion(${o.id})">OK</button>
+                            </div>`
+                         : ''
+                 }
+             </div>`).join('');
+     } catch (e) {
+         console.error('Error cargando observaciones:', e);
+     }
+ }
+
+ async function guardarObservacion() {
+     const descripcion = document.getElementById('obsDescripcion').value.trim();
+     if (!descripcion) {
+         mostrarToast('Escribe una descripción', true);
+         return;
+     }
+     try {
+         const resp = await fetch(`/api/observaciones/solicitud/${solicitudObsId}`, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                 tipo:          document.getElementById('obsTipo').value,
+                 campoAfectado: document.getElementById('obsCampo').value,
+                 descripcion:   descripcion
+             })
+         });
+         if (!resp.ok) throw new Error();
+         mostrarToast('Observación registrada ✅');
+         document.getElementById('obsDescripcion').value = '';
+         await cargarObservaciones(solicitudObsId);
+         cargarSolicitudes();
+     } catch (e) {
+         mostrarToast('Error registrando observación', true);
+     }
+ }
+
+ async function responderObservacion(obsId) {
+     const respuesta = document.getElementById(`resp_${obsId}`).value.trim();
+     if (!respuesta) {
+         mostrarToast('Escribe una respuesta', true);
+         return;
+     }
+     try {
+         const resp = await fetch(`/api/observaciones/${obsId}/responder`, {
+             method: 'PUT',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ respuesta })
+         });
+         if (!resp.ok) throw new Error();
+         mostrarToast('Respuesta guardada ✅');
+         await cargarObservaciones(solicitudObsId);
+         cargarSolicitudes();
+     } catch (e) {
+         mostrarToast('Error guardando respuesta', true);
+     }
+ }
+ // ===== F-05: ENVIAR COTIZACIÓN =====
+ async function enviarCotizacion(cotizacionId, codigo) {
+     if (!confirm(`¿Enviar la cotización ${codigo} al cliente por correo?`)) return;
+     mostrarToast('Enviando correo...');
+     try {
+         const resp = await fetch(`/api/cotizaciones/${cotizacionId}/enviar`, {
+             method: 'POST'
+         });
+         const data = await resp.json();
+         if (!resp.ok) throw new Error(data);
+         mostrarToast(`✅ ${data.mensaje}`);
+         cargarCotizaciones();
+         cargarDashboard();
+     } catch (e) {
+         mostrarToast('Error al enviar: ' + e.message, true);
      }
  }
