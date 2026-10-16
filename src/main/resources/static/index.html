@@ -25,7 +25,10 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>Nombre Completo *</label>
-                <input type="text" id="nombre" placeholder="Ej: Carlos Mejía"/>
+                <input type="text" id="nombre" placeholder="Ej: Carlos Mejía"
+                       maxlength="100"
+                       oninput="soloLetras(this)"/>
+                <span class="field-hint">Solo letras y espacios</span>
             </div>
             <div class="form-group">
                 <label>Tipo de Cliente *</label>
@@ -37,27 +40,43 @@
             </div>
             <div class="form-group">
                 <label>Correo Electrónico *</label>
-                <input type="email" id="correo" placeholder="correo@ejemplo.com"/>
+                <input type="email" id="correo" placeholder="correo@ejemplo.com"
+                       maxlength="150"
+                       onblur="validarCorreo(this)"/>
             </div>
             <div class="form-group">
                 <label>Teléfono *</label>
-                <input type="tel" id="telefono" placeholder="3XX XXX XXXX"/>
+                <input type="tel" id="telefono" placeholder="3XXXXXXXXX"
+                       maxlength="10"
+                       oninput="soloDigitos(this)"
+                       pattern="[0-9]{10}"/>
+                <span class="field-hint">10 dígitos, sin espacios ni guiones</span>
             </div>
             <div class="form-group full">
                 <label>Dirección del Predio *</label>
-                <input type="text" id="direccion" placeholder="Calle, número, barrio, ciudad"/>
+                <input type="text" id="direccion" placeholder="Calle, número, barrio, ciudad"
+                       maxlength="200"
+                       minlength="5"/>
             </div>
             <div class="form-group">
                 <label>Consumo Mensual (kWh) *</label>
-                <input type="number" id="consumoKwh" placeholder="Ej: 420"/>
+                <input type="number" id="consumoKwh" placeholder="Ej: 420"
+                       min="1" max="99999"
+                       step="1"
+                       oninput="soloPositivo(this)"/>
+                <span class="field-hint">Entre 1 y 99 999 kWh</span>
             </div>
             <div class="form-group">
                 <label>Valor Promedio Factura (COP) *</label>
-                <input type="number" id="valorFactura" placeholder="Ej: 210000"/>
+                <input type="number" id="valorFactura" placeholder="Ej: 210000"
+                       min="1000" max="99999999"
+                       step="1"
+                       oninput="soloPositivo(this)"/>
+                <span class="field-hint">Valor en pesos colombianos</span>
             </div>
             <div class="form-group full">
                 <label>Observaciones</label>
-                <textarea id="observaciones" placeholder="Información adicional..."></textarea>
+                <textarea id="observaciones" placeholder="Información adicional..." maxlength="500"></textarea>
             </div>
         </div>
         <div id="error-msg" class="error-msg"></div>

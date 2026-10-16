@@ -1,40 +1,154 @@
 const API = 'http://localhost:8080/api/solicitudes';
 
+// ── Helpers de validación en tiempo real ─────────────────────────────────────
+
+/** Elimina cualquier carácter que no sea letra o espacio (incluye tildes) */
+function soloLetras(input) {
+    input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+}
+
+/** Elimina cualquier carácter que no sea dígito */
+function soloDigitos(input) {
+    input.value = input.value.replace(/\D/g, '');
+}
+
+/** Impide valores negativos o cero en campos numéricos */
+function soloPositivo(input) {
+    if (input.value !== '' && Number(input.value) < 0) {
+        input.value = '';
+    }
+}
+
+/** Valida formato de email al perder el foco */
+function validarCorreo(input) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (input.value && !re.test(input.value)) {
+        input.classList.add('error');
+        mostrarErrorCampo(input, 'Formato de correo inválido');
+    } else {
+        input.classList.remove('error');
+        quitarErrorCampo(input);
+    }
+}
+
+function mostrarErrorCampo(input, msg) {
+    let hint = input.parentElement.querySelector('.field-error');
+    if (!hint) {
+        hint = document.createElement('span');
+        hint.className = 'field-error';
+        hint.style.cssText = 'color:#DC2626;font-size:11px;display:block;margin-top:3px';
+        input.parentElement.appendChild(hint);
+    }
+    hint.textContent = msg;
+}
+
+function quitarErrorCampo(input) {
+    const hint = input.parentElement.querySelector('.field-error');
+    if (hint) hint.remove();
+}
+
 // ── Registrar solicitud ──────────────────────────────────────────────────────
 async function registrarSolicitud() {
-    const nombre      = document.getElementById('nombre').value.trim();
-    const tipoCliente = document.getElementById('tipoCliente').value;
-    const correo      = document.getElementById('correo').value.trim();
-    const telefono    = document.getElementById('telefono').value.trim();
-    const direccion   = document.getElementById('direccion').value.trim();
-    const consumoKwh  = document.getElementById('consumoKwh').value;
-    const valorFactura= document.getElementById('valorFactura').value;
+    const nombre       = document.getElementById('nombre').value.trim();
+    const tipoCliente  = document.getElementById('tipoCliente').value;
+    const correo       = document.getElementById('correo').value.trim();
+    const telefono     = document.getElementById('telefono').value.trim();
+    const direccion    = document.getElementById('direccion').value.trim();
+    const consumoKwh   = document.getElementById('consumoKwh').value;
+    const valorFactura = document.getElementById('valorFactura').value;
     const observaciones = document.getElementById('observaciones').value.trim();
 
-    // Limpiar errores
+    // Limpiar errores previos
     document.getElementById('error-msg').textContent = '';
     ['nombre','tipoCliente','correo','telefono','direccion','consumoKwh','valorFactura']
-        .forEach(id => document.getElementById(id).classList.remove('error'));
+        .forEach(id => {
+            document.getElementById(id).classList.remove('error');
+            quitarErrorCampo(document.getElementById(id));
+        });
 
-    // Validar campos obligatorios
     let errores = [];
-    if (!nombre)       { errores.push('Nombre'); document.getElementById('nombre').classList.add('error'); }
-    if (!tipoCliente)  { errores.push('Tipo de cliente'); document.getElementById('tipoCliente').classList.add('error'); }
-    if (!correo)       { errores.push('Correo'); document.getElementById('correo').classList.add('error'); }
-    if (!telefono)     { errores.push('Teléfono'); document.getElementById('telefono').classList.add('error'); }
-    if (!direccion)    { errores.push('Dirección'); document.getElementById('direccion').classList.add('error'); }
-    if (!consumoKwh)   { errores.push('Consumo kWh'); document.getElementById('consumoKwh').classList.add('error'); }
-    if (!valorFactura) { errores.push('Valor factura'); document.getElementById('valorFactura').classList.add('error'); }
+
+    // Nombre: obligatorio, solo letras, mínimo 3 caracteres
+    if (!nombre) {
+        errores.push('Nombre');
+        document.getElementById('nombre').classList.add('error');
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{3,}$/.test(nombre)) {
+        errores.push('Nombre (solo letras, mínimo 3 caracteres)');
+        document.getElementById('nombre').classList.add('error');
+        mostrarErrorCampo(document.getElementById('nombre'), 'Solo letras, mínimo 3 caracteres');
+    }
+
+    // Tipo de cliente
+    if (!tipoCliente) {
+        errores.push('Tipo de cliente');
+        document.getElementById('tipoCliente').classList.add('error');
+    }
+
+    // Correo: obligatorio y formato válido
+    const reCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correo) {
+        errores.push('Correo');
+        document.getElementById('correo').classList.add('error');
+    } else if (!reCorreo.test(correo)) {
+        errores.push('Correo (formato inválido)');
+        document.getElementById('correo').classList.add('error');
+        mostrarErrorCampo(document.getElementById('correo'), 'Formato inválido: correo@ejemplo.com');
+    }
+
+    // Teléfono: obligatorio, solo dígitos, exactamente 10
+    if (!telefono) {
+        errores.push('Teléfono');
+        document.getElementById('telefono').classList.add('error');
+    } else if (!/^\d{10}$/.test(telefono)) {
+        errores.push('Teléfono (10 dígitos)');
+        document.getElementById('telefono').classList.add('error');
+        mostrarErrorCampo(document.getElementById('telefono'), 'Debe tener exactamente 10 dígitos');
+    }
+
+    // Dirección: obligatorio, mínimo 5 caracteres
+    if (!direccion) {
+        errores.push('Dirección');
+        document.getElementById('direccion').classList.add('error');
+    } else if (direccion.length < 5) {
+        errores.push('Dirección (mínimo 5 caracteres)');
+        document.getElementById('direccion').classList.add('error');
+        mostrarErrorCampo(document.getElementById('direccion'), 'Mínimo 5 caracteres');
+    }
+
+    // Consumo kWh: obligatorio, número positivo
+    if (!consumoKwh) {
+        errores.push('Consumo kWh');
+        document.getElementById('consumoKwh').classList.add('error');
+    } else if (Number(consumoKwh) <= 0) {
+        errores.push('Consumo kWh (debe ser mayor a 0)');
+        document.getElementById('consumoKwh').classList.add('error');
+        mostrarErrorCampo(document.getElementById('consumoKwh'), 'Debe ser mayor a 0');
+    }
+
+    // Valor factura: obligatorio, número positivo
+    if (!valorFactura) {
+        errores.push('Valor factura');
+        document.getElementById('valorFactura').classList.add('error');
+    } else if (Number(valorFactura) <= 0) {
+        errores.push('Valor factura (debe ser mayor a 0)');
+        document.getElementById('valorFactura').classList.add('error');
+        mostrarErrorCampo(document.getElementById('valorFactura'), 'Debe ser mayor a 0');
+    }
+
+    // Consentimiento
+    if (!document.getElementById('consentimiento').checked) {
+        errores.push('Consentimiento de datos');
+    }
 
     if (errores.length > 0) {
         document.getElementById('error-msg').textContent =
-            'Campos obligatorios faltantes: ' + errores.join(', ');
+            'Corrige los siguientes campos: ' + errores.join(', ');
         return;
     }
 
     const solicitud = {
         nombre, tipoCliente, correo, telefono, direccion,
-        consumoKwh: parseFloat(consumoKwh),
+        consumoKwh:   parseFloat(consumoKwh),
         valorFactura: parseFloat(valorFactura),
         observaciones
     };
@@ -60,6 +174,7 @@ async function registrarSolicitud() {
     }
 }
 
+// ── Consultar estado ──────────────────────────────────────────────────────────
 async function consultarEstado() {
     const codigo = document.getElementById('codigoBusqueda').value.trim();
     const div    = document.getElementById('resultado-consulta');
@@ -93,13 +208,14 @@ async function consultarEstado() {
                     <div class="resultado-row"><label>CO₂ evitado</label><span>${fmt(d.cotizacion.reduccionCo2KgAnual)} kg/año</span></div>
                     ` : `<div style="margin-top:12px;color:#777;font-size:0.9rem">⏳ Tu cotización está siendo preparada.</div>`}
                 </div>`;
-                } else {
-                    div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se encontró ninguna solicitud con ese código.</p>';
-                }
-            } catch (error) {
-                div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se pudo conectar con el servidor.</p>';
-            }
+        } else {
+            div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se encontró ninguna solicitud con ese código.</p>';
+        }
+    } catch (error) {
+        div.innerHTML = '<p style="color:#DC2626;font-size:13px;margin-top:10px">No se pudo conectar con el servidor.</p>';
+    }
 }
+
 // ── Cargar todas las solicitudes ─────────────────────────────────────────────
 async function cargarSolicitudes() {
     const div = document.getElementById('tabla-solicitudes');
@@ -145,11 +261,14 @@ async function cargarSolicitudes() {
 // ── Utilidades ───────────────────────────────────────────────────────────────
 function limpiarFormulario() {
     ['nombre','correo','telefono','direccion','consumoKwh','valorFactura','observaciones']
-        .forEach(id => document.getElementById(id).value = '');
+        .forEach(id => {
+            document.getElementById(id).value = '';
+            document.getElementById(id).classList.remove('error');
+            quitarErrorCampo(document.getElementById(id));
+        });
     document.getElementById('tipoCliente').value = '';
+    document.getElementById('tipoCliente').classList.remove('error');
     document.getElementById('error-msg').textContent = '';
-    ['nombre','tipoCliente','correo','telefono','direccion','consumoKwh','valorFactura']
-        .forEach(id => document.getElementById(id).classList.remove('error'));
 }
 
 function nuevaSolicitud() {
