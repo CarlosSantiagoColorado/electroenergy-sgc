@@ -30,6 +30,7 @@ public class CotizacionController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // separar el metodo del controller
 
     // Listar todas las cotizaciones
     @GetMapping
